@@ -215,5 +215,5 @@ ulimit_tune
 
 
 get_system_info
-echo -e "当前系统信息: $opsy $virtual $arch $kern
+echo -e "当前系统信息: $opsy $virtual $arch $kern"
 
