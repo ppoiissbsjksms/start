@@ -1,21 +1,5 @@
 #!/usr/bin/env bash
-Green_font_prefix="\033[32m"
-Red_font_prefix="\033[31m"
-Font_color_suffix="\033[0m"
-Info="${Green_font_prefix}[信息]${Font_color_suffix}"
-Error="${Red_font_prefix}[错误]${Font_color_suffix}"
-Tip="${Green_font_prefix}[注意]${Font_color_suffix}"
-copyright(){
-    clear
-echo "\
-############################################################
 
-Linux网络优化脚本
-Powered by Neko Neko Cloud
-
-############################################################
-"
-}
 tcp_tune(){ # 优化TCP窗口
 sed -i '/net.ipv4.tcp_no_metrics_save/d' /etc/sysctl.conf
 sed -i '/net.ipv4.tcp_ecn/d' /etc/sysctl.conf
@@ -72,20 +56,7 @@ EOF
 sysctl -p && sysctl --system
 }
 
-banping(){
-sed -i '/net.ipv4.icmp_echo_ignore_all/d' /etc/sysctl.conf
-sed -i '/net.ipv4.icmp_echo_ignore_broadcasts/d' /etc/sysctl.conf
-cat >> '/etc/sysctl.conf' << EOF
-net.ipv4.icmp_echo_ignore_all=1
-net.ipv4.icmp_echo_ignore_broadcasts=1
-EOF
-sysctl -p && sysctl --system
-}
-unbanping(){
-sed -i "s/net.ipv4.icmp_echo_ignore_all=1/net.ipv4.icmp_echo_ignore_all=0/g" /etc/sysctl.conf
-sed -i "s/net.ipv4.icmp_echo_ignore_broadcasts=1/net.ipv4.icmp_echo_ignore_broadcasts=0/g" /etc/sysctl.conf
-sysctl -p && sysctl --system
-}
+
 
 ulimit_tune(){
 
@@ -148,20 +119,6 @@ systemctl daemon-reload
 
 }
 
-bbr(){
-
-if uname -r|grep -q "^5."
-then
-    echo "已经是 5.x 内核，不需要更新"
-else
-    wget -N "http://sh.nekoneko.cloud/bbr/bbr.sh" -O bbr.sh && bash bbr.sh
-fi
-  
-}
-
-Update_Shell(){
-  wget -N "http://sh.nekoneko.cloud/tools.sh" -O tools.sh && chmod +x tools.sh && ./tools.sh
-}
 
 get_opsy() {
   [ -f /etc/redhat-release ] && awk '{print ($1,$3~/^[0-9]/?$3:$4)}' /etc/redhat-release && return
@@ -243,51 +200,20 @@ get_system_info() {
   virt_check
 }
 
-menu() {
-  echo -e "\
-${Green_font_prefix}0.${Font_color_suffix} 升级脚本
-${Green_font_prefix}1.${Font_color_suffix} 安装BBR原版内核(已经是5.x的不需要)
-${Green_font_prefix}2.${Font_color_suffix} TCP窗口调优
-${Green_font_prefix}3.${Font_color_suffix} 开启内核转发
-${Green_font_prefix}4.${Font_color_suffix} 系统资源限制调优
-${Green_font_prefix}5.${Font_color_suffix} 屏蔽ICMP ${Green_font_prefix}6.${Font_color_suffix} 开放ICMP
-"
+apt update -y
+apt install systemd-timesyncd iperf3 wget curl -y
+timedatectl set-timezone Asia/Shanghai
+
+
+#开启BBR
+tcp_tune
+#开启内核转发
+enable_forwarding
+#优化资源限制
+ulimit_tune
+
+
+
 get_system_info
-echo -e "当前系统信息: ${Font_color_suffix}$opsy ${Green_font_prefix}$virtual${Font_color_suffix} $arch ${Green_font_prefix}$kern${Font_color_suffix}
-"
+echo -e "当前系统信息: $opsy $virtual $arch $kern
 
-  read -p "请输入数字: " num
-  case "$num" in
-  0)
-    Update_Shell
-    ;;
-  1)
-    bbr
-    ;;
-  2)
-    tcp_tune
-    ;;
-  3)
-    enable_forwarding
-    ;;
-  4)
-    ulimit_tune
-    ;;
-  5)
-    banping
-    ;;
-  6)
-    unbanping
-    ;;
-  *)
-  clear
-    echo -e "${Error}:请输入正确数字 [0-99]"
-    sleep 5s
-    start_menu
-    ;;
-  esac
-}
-
-copyright
-
-menu
