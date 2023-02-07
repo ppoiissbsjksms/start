@@ -203,6 +203,8 @@ get_system_info() {
 apt update -y
 apt install systemd-timesyncd iperf3 wget curl -y
 timedatectl set-timezone Asia/Shanghai
+curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | bash
+apt-get install speedtest -y
 
 
 #开启BBR
