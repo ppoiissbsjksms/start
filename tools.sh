@@ -64,6 +64,7 @@ echo "1000000" > /proc/sys/fs/file-max
 sed -i '/fs.file-max/d' /etc/sysctl.conf
 cat >> '/etc/sysctl.conf' << EOF
 fs.file-max=1000000
+#已开启BBR
 EOF
 
 ulimit -SHn 1000000 && ulimit -c unlimited
@@ -201,11 +202,15 @@ get_system_info() {
 }
 
 apt update -y
-apt install systemd-timesyncd iperf3 wget curl -y
+apt install systemd-timesyncd iperf3 wget curl net-tools unzip -y
 timedatectl set-timezone Asia/Shanghai
 curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | bash
 apt-get install speedtest -y
-
+wget https://cdn.ipip.net/17mon/besttrace4linux.zip
+unzip besttrace4linux.zip
+chmod +x besttrace
+cp besttrace /usr/local/bin/
+rm besttrace*
 
 #开启BBR
 tcp_tune
