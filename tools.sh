@@ -219,7 +219,8 @@ enable_forwarding
 #优化资源限制
 ulimit_tune
 
-
+echo nameserver 1.1.1.1 > /etc/resolv.conf
+echo nameserver 8.8.8.8 >> /etc/resolv.conf
 
 get_system_info
 echo -e "当前系统信息: $opsy $virtual $arch $kern"
